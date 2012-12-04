@@ -144,7 +144,7 @@ var event_tracker_binding = (function () {
         var element_selector =
             tracker_configuration.event_tracker.element_selector;
         if ($(element_selector).length) {
-            console.debug('Tracked element "' + element_selector + '" found');
+            console.log('Tracked element "' + element_selector + '" found');
         } else {
             console.warn(
                 'Tracked element "' + element_selector + '" not found'
