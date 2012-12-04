@@ -60,7 +60,7 @@ EVENT_TRACKING_CONFIGURATION = [
     },
     // Advert click-throughs
     {
-        event_tracker: new event_trackers.ClickTracker(
+        event_tracker: new event_trackers.OutboundLinkTracker(
             '.advert>a',
             {
                 category: 'Adverts',
@@ -101,6 +101,17 @@ The data you track can be anything. This is largely governed by the event record
 ([see below](#recording-events)) you choose to use. The values in the
 object can either be strings or functions. When the function is called,
 it will recieve the element as a jQuery object on which the event is taking place.
+
+#### A note on links
+
+Some analytics services cannot response quickly enough to the browser's request before
+the location changes when the click on a link is being recorded. To work around this,
+the ``OutboundLinkTracker`` is available. This adds a short delay before directing the
+user on to the next page, which should give most tracking services enough time to complete
+their work before the browser aborts that request.
+
+Be careful if you have other events bound on to the click as there may be some undesirable
+consequences.
 
 ### page_ids
 
