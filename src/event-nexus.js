@@ -45,12 +45,45 @@ var event_trackers = (function () {
     
     var build_specific_user_interaction_tracker = function (event_name) {
         return function (element_selector, tracking_data) {
-            return new event_trackers.UserInteractionTracker(
+            return new UserInteractionTracker(
                 element_selector,
                 event_name,
                 tracking_data
             );
         };
+    };
+    
+    
+    /**
+     * Tracker for links which leave the current page.
+     * 
+     * @param {String} element_selector
+     * @param {Object} tracking_data
+     */
+    var OutboundLinkTracker = function (element_selector, tracking_data) {
+        this.element_selector = element_selector;
+        this.tracking_data = $.extend({is_interactive: true}, tracking_data);
+    };
+    OutboundLinkTracker.prototype.bind = function (tracking_data_handler) {
+        var self = this;
+        
+        $(document).one('click', self.element_selector, function (event) {
+            event.preventDefault();
+            
+            var $element = $(this);
+            
+            var tracking_data = resolve_tracking_data(
+                self.tracking_data,
+                $element
+            );
+            tracking_data_handler(tracking_data);
+            
+            // Delay outbound click
+            setTimeout(
+                function () { $element[0].click(); },
+                100
+            );
+        });
     };
     
     
@@ -99,6 +132,7 @@ var event_trackers = (function () {
             build_specific_user_interaction_tracker,
         ClickTracker: build_specific_user_interaction_tracker('click'),
         ElementImpressionTracker: ElementImpressionTracker,
+        OutboundLinkTracker: OutboundLinkTracker,
         UserInteractionTracker: UserInteractionTracker,
         resolve_tracking_data: resolve_tracking_data
     };
