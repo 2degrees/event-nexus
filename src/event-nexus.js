@@ -115,8 +115,12 @@ var event_recorders = (function () {
         var recording_function;
         
         if (window.console) {
-            recording_function = function () {
-                console.log.apply(console, arguments);
+            recording_function = function (tracking_data) {
+                var message = '';
+                $.each(tracking_data, function(key, value) {
+                    message += key + ': ' + value + ', ';
+                });
+                console.info(message);
             };
         } else {
             recording_function = $.noop;
@@ -141,6 +145,7 @@ var event_tracker_binding = (function () {
         if (!window.console) {
             return;
         }
+        
         var element_selector =
             tracker_configuration.event_tracker.element_selector;
         if ($(element_selector).length) {
