@@ -279,6 +279,54 @@ test('Bind the event definition with matching page_id with element absent', func
     );
 });
 
+
+test('Bind the event definition with page_id not set', function () {
+    var $fixture = $('#qunit-fixture');
+    $fixture.append('<div>Test</div>');
+    
+    var tracked_data = [];
+    var mock_recorder = {
+        record: function (tracking_data) {
+            tracked_data.push(tracking_data);
+        }
+    };
+    
+    var data_to_track = {foo: 'bar'};
+    
+    var event_tracker = new event_trackers.ElementImpressionTracker(
+        '#qunit-fixture div',
+        data_to_track
+    );
+    var trackers_definition = [
+        {
+            event_tracker: event_tracker
+        }
+    ];
+    
+    if (!window.console) {
+        window.console = {};
+    }
+    
+    var debug_messages = [];
+    window.console.log = function (message) {
+        debug_messages.push(message);
+    };
+    
+    event_tracker_binding.bind_trackers_to_dom(
+        trackers_definition,
+        mock_recorder,
+        'homepage',
+        true
+    );
+    
+    strictEqual(tracked_data.length, 1);
+    deepEqual(tracked_data[0], event_tracker.tracking_data);
+    
+    strictEqual(debug_messages.length, 1);
+    deepEqual(debug_messages[0], 'Tracked element "#qunit-fixture div" found');
+});
+
+
 test('Bind the event definition with no matching page_id', function () {
     var $fixture = $('#qunit-fixture');
     $fixture.append('<div>Test</div>');

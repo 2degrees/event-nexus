@@ -199,7 +199,12 @@ var event_tracker_binding = (function () {
     ) {
         $.each(event_tracking_configuration, function () {
             var tracker_configuration = this;
-            if ($.inArray(page_id, tracker_configuration.page_ids) === -1) {
+            
+            var are_page_ids_specified =
+                !$.isEmptyObject(tracker_configuration.page_ids);
+            var is_current_page_id_matched =
+                $.inArray(page_id, tracker_configuration.page_ids) !== -1;
+            if (are_page_ids_specified && !is_current_page_id_matched) {
                 return true;
             }
             
