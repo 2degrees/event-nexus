@@ -158,7 +158,7 @@ module('Event recorders');
 if (window.console) {
     test('Console event recording (console available)', function () {
         var messages = [];
-        console.log = function (message) {
+        console.info = function (message) {
             messages.push(message);
         };
         
@@ -167,7 +167,7 @@ if (window.console) {
         console_recorder.record(tracking_data);
         
         strictEqual(messages.length, 1);
-        deepEqual(messages[0], tracking_data);
+        deepEqual(messages[0], 'foo: bar, ');
         
     });
     
@@ -212,7 +212,7 @@ test('Bind the event definition with matching page_id with element present', fun
     }
     
     var debug_messages = [];
-    window.console.debug = function (message) {
+    window.console.log = function (message) {
         debug_messages.push(message);
     };
     
