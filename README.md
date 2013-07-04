@@ -6,7 +6,7 @@ A declarative way to tracking and recording events on your website.
 
 If you need to set-up event tracking and recording on your website it can be
 a never-ending task to keep lots of snippets of javascript up-to-date. With a
-dynmaic site this becomes a task of ever-increasing complexity and maintainace
+dynmaic site this becomes a task of ever-increasing complexity and maintenance
 can become a headache.
 
 To overcome this problem, `event-nexus` allows you to declare all the events
@@ -94,17 +94,17 @@ arguments:
 1. The CSS selector which describes the element
 2. An object containig the data to track
 
-Since ``event-nexus`` relies on jQuery, any valid jQuery selector can be use to
+Since ``event-nexus`` relies on jQuery, any valid jQuery selector can be used to
 describe the element and can point to multiple similar elements on the page.
 
 The data you track can be anything. This is largely governed by the event recorder
 ([see below](#recording-events)) you choose to use. The values in the
 object can either be strings or functions. When the function is called,
-it will recieve the element as a jQuery object on which the event is taking place.
+it will receive the element as a jQuery object on which the event is taking place.
 
 #### A note on links
 
-Some analytics services cannot response quickly enough to the browser's request before
+Some analytics services cannot respond quickly enough to the browser's request before
 the location changes when the click on a link is being recorded. To work around this,
 the ``OutboundLinkTracker`` is available. This adds a short delay before directing the
 user on to the next page, which should give most tracking services enough time to complete
