@@ -67,7 +67,7 @@ var event_trackers = (function () {
     OutboundLinkTracker.prototype.bind = function (tracking_data_handler) {
         var self = this;
         
-        $(document).on('click', self.element_selector, function (event) {
+        var handler = function (event) {
             event.preventDefault();
             
             var $element = $(this);
@@ -83,8 +83,10 @@ var event_trackers = (function () {
                 function () { $element[0].click(); },
                 100
             );
-            $(document).off('click', self.element_selector, this);
-        });
+            $(document).off('click.event_nexus', self.element_selector);
+        };
+        
+        $(document).on('click.event_nexus', self.element_selector, handler);
     };
     
     
