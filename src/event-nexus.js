@@ -13,14 +13,14 @@
 *
 * Dependencies:
 * - jQuery 1.7.2+
-* 
+*
 */
 
 
 var event_trackers = (function () {
-    
+
     'use strict';
-    
+
     var UserInteractionTracker = function (
         element_selector,
         event_name,
@@ -30,7 +30,7 @@ var event_trackers = (function () {
         this.event_name = event_name;
         this.tracking_data = $.extend({is_interactive: true}, tracking_data);
     };
-    
+
     UserInteractionTracker.prototype.bind = function (tracking_data_handler) {
         var self = this;
         $(document).on(self.event_name, self.element_selector, function () {
@@ -41,8 +41,8 @@ var event_trackers = (function () {
             tracking_data_handler(tracking_data);
         });
     };
-    
-    
+
+
     var build_specific_user_interaction_tracker = function (event_name) {
         return function (element_selector, tracking_data) {
             return new UserInteractionTracker(
@@ -52,11 +52,11 @@ var event_trackers = (function () {
             );
         };
     };
-    
-    
+
+
     /**
      * Tracker for links which leave the current page.
-     * 
+     *
      * @param {String} element_selector
      * @param {Object} tracking_data
      */
@@ -66,7 +66,7 @@ var event_trackers = (function () {
     };
     OutboundLinkTracker.prototype.bind = function (tracking_data_handler) {
         var self = this;
-        
+
         var handler = function (event) {
             event.preventDefault();
             
@@ -85,19 +85,19 @@ var event_trackers = (function () {
             );
             $(document).off('click.event_nexus', self.element_selector);
         };
-        
+
         $(document).on('click.event_nexus', self.element_selector, handler);
     };
-    
-    
+
+
     var ElementImpressionTracker = function (element_selector, tracking_data) {
         this.element_selector = element_selector;
         this.tracking_data = $.extend({is_interactive: false}, tracking_data);
     };
-    
+
     ElementImpressionTracker.prototype.bind = function (tracking_data_handler) {
         var self = this;
-        
+
         $(function () {
             var $matching_elements = $(self.element_selector);
             $matching_elements.each(function () {
@@ -109,11 +109,11 @@ var event_trackers = (function () {
             });
         });
     };
-    
-    
+
+
     var resolve_tracking_data = function (tracking_data, $element) {
         var resolved_tracking_data = {};
-        
+
         $.each(tracking_data, function (key, value) {
             var resolved_value;
             if ($.isFunction(value)) {
@@ -123,13 +123,13 @@ var event_trackers = (function () {
             }
             resolved_tracking_data[key] = resolved_value;
         });
-        
+
         return resolved_tracking_data;
     };
-    
-    
+
+
     // Public API
-    
+
     var module = {
         build_specific_user_interaction_tracker:
             build_specific_user_interaction_tracker,
@@ -144,13 +144,13 @@ var event_trackers = (function () {
 
 
 var event_recorders = (function () {
-    
+
     'use strict';
-    
+
     var ConsoleEventRecorder = function () {};
     ConsoleEventRecorder.prototype.record = (function () {
         var recording_function;
-        
+
         if (window.console) {
             recording_function = function (tracking_data) {
                 var message = '';
@@ -164,9 +164,9 @@ var event_recorders = (function () {
         }
         return recording_function;
     })();
-    
+
     // Public API
-    
+
     var module = {
         ConsoleEventRecorder: ConsoleEventRecorder
     };
@@ -175,14 +175,14 @@ var event_recorders = (function () {
 
 
 var event_tracker_binding = (function () {
-    
+
     'use strict';
-    
+
     var check_element_to_track_exists = function (tracker_configuration) {
         if (!window.console) {
             return;
         }
-        
+
         var element_selector =
             tracker_configuration.event_tracker.element_selector;
         if ($(element_selector).length) {
@@ -193,7 +193,7 @@ var event_tracker_binding = (function () {
             );
         }
     };
-    
+
     var bind_trackers_to_dom = function (
         event_tracking_configuration,
         event_recorder,
@@ -202,7 +202,7 @@ var event_tracker_binding = (function () {
     ) {
         $.each(event_tracking_configuration, function () {
             var tracker_configuration = this;
-            
+
             var are_page_ids_specified =
                 !$.isEmptyObject(tracker_configuration.page_ids);
             var is_current_page_id_matched =
@@ -210,11 +210,11 @@ var event_tracker_binding = (function () {
             if (are_page_ids_specified && !is_current_page_id_matched) {
                 return true;
             }
-            
+
             if (debug) {
                 check_element_to_track_exists(tracker_configuration);
             }
-            
+
             tracker_configuration.event_tracker.bind(
                 function (tracking_data) {
                     event_recorder.record(tracking_data);
@@ -222,9 +222,9 @@ var event_tracker_binding = (function () {
             );
         });
     };
-    
+
     // Public API
-    
+
     var module = {
         bind_trackers_to_dom: bind_trackers_to_dom
     };
