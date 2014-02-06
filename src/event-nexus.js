@@ -68,22 +68,28 @@ var event_trackers = (function () {
         var self = this;
 
         var handler = function (event) {
-            event.preventDefault();
-            
             var $element = $(this);
-            
+            if (!$element.attr('href')) {
+                $.error(
+                    'Cannot use OutboundLinkTracker on elements without "href"'
+                );
+            }
+
             var tracking_data = resolve_tracking_data(
                 self.tracking_data,
                 $element
             );
             tracking_data_handler(tracking_data);
-            
+
             // Delay outbound click
-            setTimeout(
-                function () { $element[0].click(); },
-                100
-            );
-            $(document).off('click.event_nexus', self.element_selector);
+            if (event.metaKey || event.ctrlKey) {
+                event.preventDefault();
+                setTimeout(
+                    function () { location.href = $element.attr('href'); },
+                    100
+                );
+                $(document).off('click.event_nexus', self.element_selector);
+            }
         };
 
         $(document).on('click.event_nexus', self.element_selector, handler);
