@@ -117,6 +117,32 @@ define(['jquery'], function ($) {
     };
 
 
+    // Custom form submission handler. NB. This *only* works for forms when the
+    // only thing to do is click the submit button. Forms with other fields can
+    // fail if the form is submitted by hitting enter in a text field, etc.
+    var FormSubmissionTracker = function (element_selector, tracking_data) {
+        this.element_selector = element_selector;
+        this.tracking_data = $.extend({is_interactive: true}, tracking_data);
+    };
+    
+    FormSubmissionTracker.prototype.bind = function (tracking_data_handler) {
+        var self = this;
+        var submit_button_selector = self.element_selector + ' :submit';
+        $(document).on('click', submit_button_selector, function (event) {
+            event.preventDefault();
+            var $form = $(self.element_selector);
+            var tracking_data = event_trackers.resolve_tracking_data(
+                self.tracking_data,
+                $form // Log in the context of the form, not the submit button
+            );
+            tracking_data_handler(tracking_data);
+            setTimeout(function () {
+                $form.trigger('submit');
+            }, 100);
+        });
+    };
+
+
     var resolve_tracking_data = function (tracking_data, $element) {
         var resolved_tracking_data = {};
 
@@ -141,6 +167,7 @@ define(['jquery'], function ($) {
             build_specific_user_interaction_tracker,
         ClickTracker: build_specific_user_interaction_tracker('click'),
         ElementImpressionTracker: ElementImpressionTracker,
+        FormSubmissionTracker: FormSubmissionTracker,
         OutboundLinkTracker: OutboundLinkTracker,
         UserInteractionTracker: UserInteractionTracker,
         resolve_tracking_data: resolve_tracking_data
