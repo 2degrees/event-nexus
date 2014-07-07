@@ -6,7 +6,7 @@ A declarative way to tracking and recording events on your website.
 
 If you need to set-up event tracking and recording on your website it can be
 a never-ending task to keep lots of snippets of javascript up-to-date. With a
-dynmaic site this becomes a task of ever-increasing complexity and maintenance
+dynamic site this becomes a task of ever-increasing complexity and maintenance
 can become a headache.
 
 To overcome this problem, `event-nexus` allows you to declare all the events
@@ -15,24 +15,22 @@ you want to track in a single place.
 ## Adding the code to your site
 
 ``event-nexus`` requires jQuery 1.7.2+ (it should work with any version of
-jQuery 1.7), so include this:
+jQuery 1.7). It is declared as an AMD-module so you can *require* it where you need it, and jQuery will be loaded for these modules.
 
-``` html
-<script src="/path/to/jquery/"></script>
+``event-nexus`` is broken down into three modules ``event_trackers``,
+``event_recorders`` and ``event_tracker_binding``. If you depend on all three modules,
+do the following:
+
+``` javascript
+require(
+    ['event_trackers', 'event_recorders', 'event_tracker_binding'],
+    function (event_trackers, event_recorders, event_tracker_binding) {
+        // your code here
+    }
+);
 ```
 
-Then include the event tracking library itself:
-
-``` html
-<script src="/path/to/event-nexus.js"></script>
-```
-
-At this point you have all the code to declare you events. It's recommended that
-you put all the declarations for your site in a single place, e.g.
-
-``` html
-<script src="/js/my_events.js"></script>
-```
+If you don't need all of the modules, they are completely independent so include just what you need to accomplish the task at hand.
 
 ## Declaring your tracking configuration
 
@@ -40,39 +38,46 @@ you put all the declarations for your site in a single place, e.g.
 Consider a case where you want to track an impression of an advert on your site and
 also a click on that advert.
 
-We would define this as follows:
+We would define this as follows (e.g. in ``event_tracker_config.js``):
 
 ``` javascript
-EVENT_TRACKING_CONFIGURATION = [
-    // Advert impressions
-    {
-        event_tracker: new event_trackers.ElementImpressionTracker(
-            '.advert',
-            {
-                category: 'Adverts',
-                action: 'Impression of advert',
-                label: function ($element) {
-                    return $element.data('advertiser');
+define(['event_trackers'], function (event_trackers) {
+    'use strict';
+
+    var EVENT_TRACKING_CONFIGURATION = [
+        // Advert impressions
+        {
+            event_tracker: new event_trackers.ElementImpressionTracker(
+                '.advert',
+                {
+                    category: 'Adverts',
+                    action: 'Impression of advert',
+                    label: function ($element) {
+                        return $element.data('advertiser');
+                    }
                 }
-            }
-        ),
-        page_ids: ['homepage', 'contact']
-    },
-    // Advert click-throughs
-    {
-        event_tracker: new event_trackers.OutboundLinkTracker(
-            '.advert>a',
-            {
-                category: 'Adverts',
-                action: 'Click-through on advert',
-                label: function ($element) {
-                    return $element.parent().data('advertiser');
+            ),
+            page_ids: ['homepage', 'contact']
+        },
+        // Advert click-throughs
+        {
+            event_tracker: new event_trackers.OutboundLinkTracker(
+                '.advert>a',
+                {
+                    category: 'Adverts',
+                    action: 'Click-through on advert',
+                    label: function ($element) {
+                        return $element.parent().data('advertiser');
+                    }
                 }
-            }
-        ),
-        page_ids: ['homepage', 'contact']
-    }
-];
+            ),
+            page_ids: ['homepage', 'contact']
+        }
+    ];
+
+    return EVENT_TRACKING_CONFIGURATION;
+
+});
 ```
 
 Each directive to track an event requires two parameters:
@@ -92,7 +97,7 @@ In the example above, we define one of each of these. Both trackers take two
 arguments:
 
 1. The CSS selector which describes the element
-2. An object containig the data to track
+2. An object containing the data to track
 
 Since ``event-nexus`` relies on jQuery, any valid jQuery selector can be used to
 describe the element and can point to multiple similar elements on the page.
@@ -116,12 +121,12 @@ consequences.
 ### page_ids
 
 If you have a lot of events to track on your site you want to make sure that you
-don't see slow-down on all the pages due to a large configaration, you
-can specify an identifier for the current page when parsing the configuarion
+don't see slow-down on all the pages due to a large configuration, you
+can specify an identifier for the current page when parsing the configuration
 ([see below](#recording-events)) which will be checked against the
 white-list provided in the event-tracker definition.
 
-In the example given above, only the pages identied as *homepage* and *contact* will
+In the example given above, only the pages identified as *homepage* and *contact* will
 be considered for having the specified events tracked on.
 
 **NB**: In debug mode ``event-nexus`` will warn you in the console if expected
@@ -130,7 +135,7 @@ elements are missing and let you know when they are found.
 ### Defining new event trackers
 
 If you want to track another type of interaction, you can define
-a new event tracker. The constrcutor can take anything you like,
+a new event tracker. The constructor can take anything you like,
 but most likely will take some kind of tracking data.
 
 Then you need to define a ``bind`` method. This must receive the
@@ -147,8 +152,11 @@ handler, then the ``event_trackers`` module provides a factory to
 create such objects. Let's say we want to track a ``change`` event:
 
 ``` javascript
-var ChangeTracker = event_trackers.build_specific_user_interaction_tracker('change');
-var change_tracker = new ChangeTracker(element_selector, tracking_data);
+require(['event_trackers'], function (event_trackers) {
+    'use strict';
+    var ChangeTracker = event_trackers.build_specific_user_interaction_tracker('change');
+    var change_tracker = new ChangeTracker(element_selector, tracking_data);
+});
 ```
 
 ## Recording events
@@ -159,11 +167,18 @@ data from the element to the browser console (if present).
 To use this, set up tracking as follows:
 
 ``` javascript
-var event_recorder = new event_recorders.ConsoleEventRecorder();
-event_tracker_binding.bind_trackers_to_dom(
-    EVENT_TRACKING_CONFIGURATION,
-    event_recorder,
-    $('html').data('page-id')
+require(
+    ['jquery', 'event_recorders', 'event_tracker_binding'],
+    function ($, event_recorders, event_tracker_binding) {
+        'use strict';
+
+        var event_recorder = new event_recorders.ConsoleEventRecorder();
+        event_tracker_binding.bind_trackers_to_dom(
+            EVENT_TRACKING_CONFIGURATION,
+            event_recorder,
+            $('html').data('page-id')
+        );
+    }
 );
 ```
 
@@ -180,22 +195,29 @@ Having your events logged to the console is all well and good, but it's
 not really going to give you much useful data. For this, you'll need to
 use an event recording service such as [Google analytics](http://www.google.co.uk/analytics/).
 
-Defining a recorder to use with this service is straight-forward:
+Defining a recorder to use with this service is straight-forward, e.g. in ``ga_recorder.js``:
 
 ``` javascript
-var GoogleAnalyticsEventRecorder = function () {};
-GoogleAnalyticsEventRecorder.prototype = {
-    record: function (tracking_data) {
-        _gaq.push([
-            '_trackEvent',
-            tracking_data.category,
-            tracking_data.action,
-            tracking_data.label,
-            tracking_data.value,
-            !tracking_data.is_interactive // Google analytics requires "non-interaction"
-        ]);
-    }
-};
+define([], function () {
+    'use strict';
+
+    var GoogleAnalyticsEventRecorder = function () {};
+    GoogleAnalyticsEventRecorder.prototype = {
+        record: function (tracking_data) {
+            _gaq.push([
+                '_trackEvent',
+                tracking_data.category,
+                tracking_data.action,
+                tracking_data.label,
+                tracking_data.value,
+                !tracking_data.is_interactive // Google analytics requires "non-interaction"
+            ]);
+        }
+    };
+
+    return GoogleAnalyticsEventRecorder;
+});
+
 ```
 
 Although ``event-nexus`` is essentially agnostic of the recording service
@@ -204,6 +226,16 @@ that UserInteractionEventTracker updates the tracked data to set the ``is_intera
 flag to ``true`` and ElementImpressionTracker does the converse.
 
 You can override these values by simply passing them in the data to track.
+
+## Running the tests
+
+The test suite uses QUnit. Due to the paths declared for require.js, you need to run the web-server in the root of the repository, e.g.
+
+``` bash
+cd /path/to/event-nexus
+python -m SimpleHTTPServer
+google-chrome http://localhost:8000/tests/test_runner.html
+```
 
 ## Further info
 
