@@ -131,7 +131,7 @@ define(['jquery'], function ($) {
         $(document).on('click', submit_button_selector, function (event) {
             event.preventDefault();
             var $form = $(self.element_selector);
-            var tracking_data = event_trackers.resolve_tracking_data(
+            var tracking_data = resolve_tracking_data(
                 self.tracking_data,
                 $form // Log in the context of the form, not the submit button
             );
